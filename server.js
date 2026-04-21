@@ -13,24 +13,25 @@ app.use(express.json());
 // 📁 FILVÄG
 const filePath = path.join(__dirname, "names.json");
 
-// 🧠 LADDA NAMN FRÅN FIL
+// 🧠 LADDA NAMN
 let names = {};
 
-if (fs.existsSync(filePath)) {
-  try {
-    const data = fs.readFileSync(filePath);
+try {
+  if (fs.existsSync(filePath)) {
+    const data = fs.readFileSync(filePath, "utf-8");
     names = JSON.parse(data);
-  } catch {
-    names = {};
   }
+} catch (err) {
+  console.log("Load error:", err);
+  names = {};
 }
 
-// 📥 GET names
+// 📥 GET
 app.get("/names", (req, res) => {
   res.json(names);
 });
 
-// 📤 POST name (sparar permanent)
+// 📤 POST (säkert spar)
 app.post("/names", (req, res) => {
   const { heard, correct } = req.body;
 
@@ -40,8 +41,12 @@ app.post("/names", (req, res) => {
 
   names[heard.toLowerCase()] = correct;
 
-  // 💾 Spara till fil
-  fs.writeFileSync(filePath, JSON.stringify(names, null, 2));
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(names, null, 2));
+    console.log("Saved:", heard);
+  } catch (err) {
+    console.log("Write error:", err);
+  }
 
   res.send({ success: true });
 });
