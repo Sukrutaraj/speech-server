@@ -1,6 +1,8 @@
 const express = require("express");
 const WebSocket = require("ws");
 const cors = require("cors");
+const fs = require("fs");
+const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -8,15 +10,27 @@ const PORT = process.env.PORT || 10000;
 app.use(cors());
 app.use(express.json());
 
-// 🧠 NAMN LAGRING (i minne just nu)
+// 📁 FILVÄG
+const filePath = path.join(__dirname, "names.json");
+
+// 🧠 LADDA NAMN FRÅN FIL
 let names = {};
+
+if (fs.existsSync(filePath)) {
+  try {
+    const data = fs.readFileSync(filePath);
+    names = JSON.parse(data);
+  } catch {
+    names = {};
+  }
+}
 
 // 📥 GET names
 app.get("/names", (req, res) => {
   res.json(names);
 });
 
-// 📤 POST name
+// 📤 POST name (sparar permanent)
 app.post("/names", (req, res) => {
   const { heard, correct } = req.body;
 
@@ -25,6 +39,10 @@ app.post("/names", (req, res) => {
   }
 
   names[heard.toLowerCase()] = correct;
+
+  // 💾 Spara till fil
+  fs.writeFileSync(filePath, JSON.stringify(names, null, 2));
+
   res.send({ success: true });
 });
 
