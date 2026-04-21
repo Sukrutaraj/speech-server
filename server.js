@@ -1,9 +1,11 @@
 const express = require("express");
 const WebSocket = require("ws");
+const cors = require("cors");
 
 const app = express();
 const PORT = process.env.PORT || 10000;
 
+app.use(cors());
 app.use(express.json());
 
 // 🧠 NAMN LAGRING (i minne just nu)
